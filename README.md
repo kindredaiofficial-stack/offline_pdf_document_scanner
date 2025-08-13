@@ -1,16 +1,26 @@
-# offline_pdf_document_scanner
+# Offline PDF Document Scanner
 
-A new Flutter project.
+Production-ready Flutter app scaffold (Android & iOS) with CI, strict lints, and file-by-file skeletons.
+Flutter **3.32.8**, Dart **3.8.1**.
 
-## Getting Started
+> Works offline by design. No internet permission.
 
-This project is a starting point for a Flutter application.
+## Quick Start
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+```
+See `docs/CODEX_PLAYBOOK.md` for the full “from scratch → production” checklist (identical to the canvas playbook).
 
-A few resources to get you started if this is your first Flutter project:
+## Branches
+- default: `main` (protected)
+- feature: `feat/<scope>`
+- fix: `fix/<scope>`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Modules
+- Capture (camera/gallery, edge detect, crop, filters)
+- Annotate (pen, highlighter, text)
+- OCR (optional, offline, ML Kit)
+- PDF build & export (A4/Letter, metadata, quality presets)

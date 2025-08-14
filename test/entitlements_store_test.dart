@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:offline_pdf_document_scanner/core/entitlements.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 

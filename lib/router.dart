@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
+
 import 'package:offline_pdf_document_scanner/features/capture/presentation/capture_page.dart';
 import 'package:offline_pdf_document_scanner/features/home/presentation/home_page.dart';
+import 'package:offline_pdf_document_scanner/features/iap/paywall_page.dart';
 import 'package:offline_pdf_document_scanner/features/pdf/presentation/preview_page.dart';
 
 GoRouter buildRouter() => GoRouter(
@@ -8,6 +10,7 @@ GoRouter buildRouter() => GoRouter(
     GoRoute(path: '/', builder: (c, s) => const HomePage()),
     GoRoute(path: '/capture', builder: (c, s) => const CapturePage()),
     GoRoute(path: '/preview', builder: (c, s) => const PreviewPage()),
+    GoRoute(path: '/paywall', builder: (c, s) => const PaywallPage()),
   ],
   initialLocation: '/',
 );

@@ -10,6 +10,7 @@ import 'package:offline_pdf_document_scanner/features/iap/iap_config.dart';
 import 'package:offline_pdf_document_scanner/features/iap/iap_service.dart';
 import 'package:offline_pdf_document_scanner/features/iap/paywall_page.dart';
 
+
 class _FakePathProvider extends PathProviderPlatform {
   @override
   Future<String?> getApplicationDocumentsPath() async {

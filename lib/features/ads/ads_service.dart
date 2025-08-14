@@ -1,5 +1,7 @@
+// lib/features/ads/ads_service.dart
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -12,27 +14,42 @@ final adsServiceProvider = Provider<AdsService>((ref) => AdsService(ref));
 class AdsService {
   AdsService(this.ref);
   final Ref ref;
+
   bool _initialized = false;
+  bool _disabled = false; // set if init fails so we never try again
 
   Future<void> init() async {
-    if (_initialized) return;
-    MobileAds.instance.initialize();
-    _initialized = true;
+    if (_initialized || _disabled) return;
+    try {
+      // Always await; on some devices init throws if misconfigured.
+      await MobileAds.instance.initialize();
+      _initialized = true;
+
+      // Optional but useful in dev: mark current device as a test device.
+      if (kDebugMode) {
+        await MobileAds.instance.updateRequestConfiguration(
+          RequestConfiguration(testDeviceIds: const <String>['TEST_DEVICE_ID']),
+        );
+      }
+    } catch (e, st) {
+      _disabled = true;
+      debugPrint('Ads disabled: $e\n$st');
+    }
   }
 
-  /// Builds a banner widget or [SizedBox.shrink] if not allowed/available.
-  /// [personalized] toggles nonPersonalizedAds in [AdRequest].
-  Widget buildBanner({required BuildContext context, required bool personalized}) {
-    if (!_initialized) return const SizedBox.shrink();
-    final adSize = AdSize.banner;
-    final request = AdRequest(
-      nonPersonalizedAds: !personalized,
-    );
-    return AdWidgetBanner(
-      adUnitId: Platform.isAndroid ? AdsConfig.androidBanner : AdsConfig.iosBanner,
-      size: adSize,
-      request: request,
-    );
+  /// Builds a banner widget or [SizedBox.shrink] if not available/allowed.
+  Widget buildBanner({
+    required BuildContext context,
+    required bool personalized,
+  }) {
+    if (_disabled || !_initialized) return const SizedBox.shrink();
+
+    final request = AdRequest(nonPersonalizedAds: !personalized);
+    final id = Platform.isAndroid
+        ? AdsConfig.androidBanner
+        : AdsConfig.iosBanner;
+
+    return AdWidgetBanner(adUnitId: id, request: request);
   }
 }
 
@@ -40,12 +57,10 @@ class AdWidgetBanner extends StatefulWidget {
   const AdWidgetBanner({
     super.key,
     required this.adUnitId,
-    required this.size,
     required this.request,
   });
 
   final String adUnitId;
-  final AdSize size;
   final AdRequest request;
 
   @override
@@ -61,20 +76,21 @@ class _AdWidgetBannerState extends State<AdWidgetBanner> {
     super.initState();
     _banner = BannerAd(
       adUnitId: widget.adUnitId,
-      size: widget.size,
+      // stick to a very safe size to reduce load failures on emulators
+      size: AdSize.banner,
       request: widget.request,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          setState(() {
-            _loaded = true;
-          });
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
+          setState(() => _loaded = true);
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
-          setState(() {
-            _banner = null;
-            _loaded = false;
-          });
+          if (mounted) setState(() => _loaded = false);
+          debugPrint('Banner load failed: $error');
         },
       ),
     )..load();
@@ -82,12 +98,11 @@ class _AdWidgetBannerState extends State<AdWidgetBanner> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_loaded || _banner == null) {
-      return const SizedBox(height: 0);
-    }
+    if (!_loaded || _banner == null) return const SizedBox(height: 0);
+    final size = _banner!.size;
     return SizedBox(
-      width: _banner!.size.width.toDouble(),
-      height: _banner!.size.height.toDouble(),
+      width: size.width.toDouble(),
+      height: size.height.toDouble(),
       child: AdWidget(ad: _banner!),
     );
   }

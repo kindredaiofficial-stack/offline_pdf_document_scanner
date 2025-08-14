@@ -30,4 +30,4 @@ class AdsPrefsNotifier extends StateNotifier<AdsPrefs> {
 }
 
 final adsPrefsProvider =
-    StateNotifierProvider<AdsPrefsNotifier, AdsPrefs>(AdsPrefsNotifier.new);
+    StateNotifierProvider<AdsPrefsNotifier, AdsPrefs>((ref) => AdsPrefsNotifier());

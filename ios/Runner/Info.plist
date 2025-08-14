@@ -43,7 +43,10 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
+        <key>UIApplicationSupportsIndirectInputEvents</key>
+        <true/>
+        <key>GADApplicationIdentifier</key>
+        <string>ca-app-pub-xxxxxxxxxxxxxxxx/~zzzzzzzzzz</string>
+        <!-- TODO(owner): replace -->
 </dict>
 </plist>

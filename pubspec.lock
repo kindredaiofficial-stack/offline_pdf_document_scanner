@@ -367,6 +367,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "16.1.0"
+  google_mobile_ads:
+    dependency: "direct main"
+    description:
+      name: google_mobile_ads
+      sha256: "f07d4e2ebf56181e8dd18ee810607e84aeac8add5251bb44c1c886af47ff021a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0"
   golden_toolkit:
     dependency: "direct dev"
     description:
@@ -823,6 +831,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
+  shared_preferences:
+    dependency: "direct main"
+    description:
+      name: shared_preferences
+      sha256: "746e5369a43170c25816cc472ee016d3a66bc13fcf430c0bc41ad7b4b2922051"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
   shelf:
     dependency: transitive
     description:

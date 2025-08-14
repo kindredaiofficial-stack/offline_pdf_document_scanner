@@ -29,6 +29,8 @@ dependencies:
   json_annotation: ^4.9.0
   in_app_purchase: ^3.2.3
   in_app_purchase_platform_interface: ^1.4.0
+  google_mobile_ads: ^5.0.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'entitlements.dart';
-import 'iap_config.dart';
-import 'iap_service.dart';
+import 'package:offline_pdf_document_scanner/features/iap/entitlements.dart';
+import 'package:offline_pdf_document_scanner/features/iap/iap_config.dart';
+import 'package:offline_pdf_document_scanner/features/iap/iap_service.dart';
 
 class PaywallPage extends ConsumerWidget {
   const PaywallPage({super.key});
@@ -96,8 +96,8 @@ class PaywallPage extends ConsumerWidget {
           const SizedBox(height: 24),
           Center(
             child: TextButton(
-              onPressed:
-                  service.isAvailable ? () => service.restore() : null,
+                onPressed:
+                    service.isAvailable ? service.restore : null,
               child: const Text('Restore purchases'),
             ),
           )

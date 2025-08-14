@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/iap/iap_service.dart';
+import 'package:offline_pdf_document_scanner/features/iap/iap_service.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -24,7 +24,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 ListTile(
                   title: const Text('Restore purchases'),
-                  onTap: () => service.restore(),
+                  onTap: service.restore,
                 ),
               ],
             ),

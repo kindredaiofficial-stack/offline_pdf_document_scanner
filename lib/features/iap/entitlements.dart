@@ -16,9 +16,7 @@ class IapEntitlementsStore extends AsyncNotifier<Set<IapEntitlement>> {
     final file = File('${dir.path}/$_fileName');
     if (await file.exists()) {
       final data = jsonDecode(await file.readAsString()) as List<dynamic>;
-      return data
-          .map((e) => IapEntitlement.values.byName(e as String))
-          .toSet();
+      return data.map((e) => IapEntitlement.values.byName(e as String)).toSet();
     }
     return <IapEntitlement>{};
   }
@@ -32,13 +30,14 @@ class IapEntitlementsStore extends AsyncNotifier<Set<IapEntitlement>> {
   }
 
   Future<void> grant(IapEntitlement entitlement) async {
-    final newState = {...(state.value ?? {}), entitlement};
+    final newState = <IapEntitlement>{...(state.value ?? {}), entitlement};
     state = AsyncData(newState);
     await _save(newState);
   }
 
   Future<void> revoke(IapEntitlement entitlement) async {
-    final newState = {...(state.value ?? {})}..remove(entitlement);
+    final newState = <IapEntitlement>{...(state.value ?? {})}
+      ..remove(entitlement);
     state = AsyncData(newState);
     await _save(newState);
   }
@@ -49,13 +48,15 @@ class IapEntitlementsStore extends AsyncNotifier<Set<IapEntitlement>> {
 
 final iapEntitlementsProvider =
     AsyncNotifierProvider<IapEntitlementsStore, Set<IapEntitlement>>(
-        IapEntitlementsStore.new);
+      IapEntitlementsStore.new,
+    );
 
-final entitlementOwnedProvider =
-    Provider.family<bool, IapEntitlement>((ref, entitlement) {
-  final entitlements = ref.watch(iapEntitlementsProvider).maybeWhen(
-        data: (value) => value,
-        orElse: () => <IapEntitlement>{},
-      );
+final entitlementOwnedProvider = Provider.family<bool, IapEntitlement>((
+  ref,
+  entitlement,
+) {
+  final entitlements = ref
+      .watch(iapEntitlementsProvider)
+      .maybeWhen(data: (value) => value, orElse: () => <IapEntitlement>{});
   return entitlements.contains(entitlement);
 });

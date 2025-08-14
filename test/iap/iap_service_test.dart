@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
+import 'package:offline_pdf_document_scanner/features/iap/entitlements.dart';
 import 'package:offline_pdf_document_scanner/features/iap/iap_config.dart';
 import 'package:offline_pdf_document_scanner/features/iap/iap_service.dart';
-import 'package:offline_pdf_document_scanner/features/iap/entitlements.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 class _FakePathProvider extends PathProviderPlatform {
@@ -15,6 +17,80 @@ class _FakePathProvider extends PathProviderPlatform {
   }
 }
 
+class _FakeIapPlatform extends InAppPurchasePlatform {
+  final controller = StreamController<List<PurchaseDetails>>.broadcast();
+  final List<String> owned = [];
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream => controller.stream;
+
+  @override
+  Future<bool> isAvailable() async => true;
+
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(Set<String> ids) async {
+    final products = ids
+        .map(
+          (id) => ProductDetails(
+            id: id,
+            title: id,
+            description: '',
+            price: '0',
+            rawPrice: 0,
+            currencyCode: 'INR',
+          ),
+        )
+        .toList();
+    return ProductDetailsResponse(
+      productDetails: products,
+      notFoundIDs: const [],
+    );
+  }
+
+  @override
+  Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
+    owned.add(purchaseParam.productDetails.id);
+    controller.add([
+      PurchaseDetails(
+        purchaseID: 't',
+        productID: purchaseParam.productDetails.id,
+        verificationData: PurchaseVerificationData(
+          localVerificationData: '',
+          serverVerificationData: '',
+          source: '',
+        ),
+        transactionDate: null,
+        status: PurchaseStatus.purchased,
+      ),
+    ]);
+    return true;
+  }
+
+  @override
+  Future<void> restorePurchases({String? applicationUserName}) async {
+    controller.add(
+      owned
+          .map(
+            (id) => PurchaseDetails(
+              purchaseID: 'r',
+              productID: id,
+              verificationData: PurchaseVerificationData(
+                localVerificationData: '',
+                serverVerificationData: '',
+                source: '',
+              ),
+              transactionDate: null,
+              status: PurchaseStatus.restored,
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  @override
+  Future<void> completePurchase(PurchaseDetails purchase) async {}
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -23,52 +99,72 @@ void main() {
   });
 
   test('grants entitlements for each SKU', () async {
-    final container = ProviderContainer();
+    final platform = _FakeIapPlatform();
+    final container = ProviderContainer(
+      overrides: [
+        iapServiceProvider.overrideWith((ref) => IapService(ref, platform)),
+      ],
+    );
     addTearDown(container.dispose);
-    final service = IapService(container.read);
+    final service = container.read(iapServiceProvider);
 
     await container.read(iapEntitlementsProvider.future);
+    await service.init();
 
-    await service.updateEntitlements(IapConfig.premiumUnlock);
-    expect(
-      container.read(iapEntitlementsProvider).value,
-      contains(IapEntitlement.premium),
-    );
+    final mapping = {
+      IapConfig.premiumUnlock: IapEntitlement.premium,
+      IapConfig.aiPack: IapEntitlement.aiPack,
+      IapConfig.proToolsPack: IapEntitlement.proTools,
+    };
 
-    await service.updateEntitlements(IapConfig.aiPack);
-    expect(
-      container.read(iapEntitlementsProvider).value,
-      contains(IapEntitlement.aiPack),
-    );
-
-    await service.updateEntitlements(IapConfig.proToolsPack);
-    expect(
-      container.read(iapEntitlementsProvider).value,
-      contains(IapEntitlement.proTools),
-    );
+    for (final entry in mapping.entries) {
+      await service.buy(entry.key);
+      await Future.delayed(Duration.zero);
+      expect(
+        container.read(iapEntitlementsProvider).value,
+        contains(entry.value),
+      );
+    }
   });
 
   test('ultimate unlocks all', () async {
-    final container = ProviderContainer();
+    final platform = _FakeIapPlatform();
+    final container = ProviderContainer(
+      overrides: [
+        iapServiceProvider.overrideWith((ref) => IapService(ref, platform)),
+      ],
+    );
     addTearDown(container.dispose);
-    final service = IapService(container.read);
+    final service = container.read(iapServiceProvider);
 
     await container.read(iapEntitlementsProvider.future);
-    await service.updateEntitlements(IapConfig.ultimate);
+    await service.init();
+    await service.buy(IapConfig.ultimate);
+    await Future.delayed(Duration.zero);
     final owned = container.read(iapEntitlementsProvider).value!;
     expect(owned.containsAll(IapEntitlement.values), isTrue);
   });
 
   test('restore re-grants entitlements', () async {
-    final container = ProviderContainer();
+    final platform = _FakeIapPlatform();
+    final container = ProviderContainer(
+      overrides: [
+        iapServiceProvider.overrideWith((ref) => IapService(ref, platform)),
+      ],
+    );
     addTearDown(container.dispose);
-    final service = IapService(container.read);
+    final service = container.read(iapServiceProvider);
 
     await container.read(iapEntitlementsProvider.future);
-    await service.updateEntitlements(IapConfig.premiumUnlock);
+    await service.init();
+    await service.buy(IapConfig.premiumUnlock);
+    await Future.delayed(Duration.zero);
+
     final store = container.read(iapEntitlementsProvider.notifier);
     await store.revoke(IapEntitlement.premium);
-    await service.updateEntitlements(IapConfig.premiumUnlock);
+
+    await service.restore();
+    await Future.delayed(Duration.zero);
     expect(
       container.read(iapEntitlementsProvider).value,
       contains(IapEntitlement.premium),

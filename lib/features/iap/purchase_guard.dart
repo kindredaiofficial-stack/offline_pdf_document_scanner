@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'entitlements.dart';
+import 'package:offline_pdf_document_scanner/features/iap/entitlements.dart';
 
 class PurchaseGuard extends ConsumerWidget {
   const PurchaseGuard({

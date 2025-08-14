@@ -30,13 +30,13 @@ class EntitlementsStore extends AsyncNotifier<Set<Feature>> {
   }
 
   Future<void> grant(Feature feature) async {
-    final newState = {...(state.value ?? {}), feature};
+    final newState = <Feature>{...(state.value ?? {}), feature};
     state = AsyncData(newState);
     await _save(newState);
   }
 
   Future<void> revoke(Feature feature) async {
-    final newState = {...(state.value ?? {})}..remove(feature);
+    final newState = <Feature>{...(state.value ?? {})}..remove(feature);
     state = AsyncData(newState);
     await _save(newState);
   }
@@ -45,12 +45,13 @@ class EntitlementsStore extends AsyncNotifier<Set<Feature>> {
 }
 
 final entitlementsProvider =
-    AsyncNotifierProvider<EntitlementsStore, Set<Feature>>(EntitlementsStore.new);
+    AsyncNotifierProvider<EntitlementsStore, Set<Feature>>(
+      EntitlementsStore.new,
+    );
 
 final featureUnlockedProvider = Provider.family<bool, Feature>((ref, feature) {
-  final entitlements = ref.watch(entitlementsProvider).maybeWhen(
-        data: (value) => value,
-        orElse: () => <Feature>{},
-      );
+  final entitlements = ref
+      .watch(entitlementsProvider)
+      .maybeWhen(data: (value) => value, orElse: () => <Feature>{});
   return entitlements.contains(feature);
 });

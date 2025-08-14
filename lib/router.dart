@@ -1,8 +1,9 @@
 import 'package:go_router/go_router.dart';
+
 import 'package:offline_pdf_document_scanner/features/capture/presentation/capture_page.dart';
 import 'package:offline_pdf_document_scanner/features/home/presentation/home_page.dart';
-import 'package:offline_pdf_document_scanner/features/pdf/presentation/preview_page.dart';
 import 'package:offline_pdf_document_scanner/features/iap/paywall_page.dart';
+import 'package:offline_pdf_document_scanner/features/pdf/presentation/preview_page.dart';
 
 GoRouter buildRouter() => GoRouter(
   routes: [
